@@ -49,10 +49,41 @@ class TestStore:
 
         with allure.step("Отправка запроса на создание заказа"):
             response = requests.post(url = f"{BASE_URL}/store/order", json = payload)
-            print(" ")
 
-        with allure.step("Проверка статус кода"):
+
+        with allure.step("Проверка статус кода и валидация json схемы"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
+            jsonschema.validate(response.json(), PET_SCHEMA)
+            response_json = response.json()
+
 
         with allure.step("Проверка текста ответа"):
-            assert response.text == '{"id":10,"petId":198772,"quantity":7,"shipDate":"2026-04-25T01:55:07.615+00:00","status":"approved","complete":true}', "Текст ответа не совпал с ожидаемым"
+            assert response_json["id"] == payload["id"], "id заказа не совпадает с ожидаемым"
+            assert response_json["petId"] == payload["petId"], "petId заказа не совпадает с ожидаемым"
+            assert response_json["quantity"] == payload["quantity"], "quantity заказа не совпадает с ожидаемым"
+            assert response_json["status"] == payload["status"], "status заказа не совпадает с ожидаемым"
+
+
+    @allure.title ("Попытка получения информации о заказе по ID")
+    def test_get_store_by_id(self, create_store):
+        with allure.step("Получение ID созданного заказа"):
+            store_id = create_store["id"]
+
+        with allure.step("Отправка get запроса по ID"):
+            response = requests.get(url = f"{BASE_URL}/store/order/1")
+            assert response.status_code == 200, "Код ответа не совпадает с ожидаемым"
+            assert response.json()["id"] == store_id, "Id запроса не совпадает с ответом"
+
+    @allure.title ("Попытка удалить заказ по ID")
+    def test_delete_store_by_id(self, create_store):
+        with allure.step("Получение ID созданного заказа"):
+            store_id = create_store["id"]
+
+        with allure.step("Удаление заказа по ID"):
+            response = requests.delete(url = f"{BASE_URL}/store/order/{store_id}")
+            assert response.status_code == 200, "Статус ответа не совпадает с ожидаемым"
+
+        with allure.step("Отправка get запроса для проверки удаления"):
+            response = requests.get(f"{BASE_URL}/store/order/{store_id}")
+            assert response.status_code == 404, "Код ответа не совпал с ожидаемым"
+
