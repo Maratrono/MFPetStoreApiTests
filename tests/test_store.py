@@ -1,7 +1,7 @@
 import allure
 import requests
 import jsonschema
-from .schemas.pet_schema import PET_SCHEMA
+from .schemas.store_schema import STORE_SCHEMA, inventory_schema
 
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
@@ -13,7 +13,6 @@ class TestStore:
     def test_get_store_by_order(self):
         with allure.step("Отправка запроса на получение информации о несуществующем заказе"):
             response = requests.get(url = f"{BASE_URL}/store/order/9999")
-            print(" ")
 
 
         with allure.step("Проврека статуса ответа"):
@@ -32,7 +31,8 @@ class TestStore:
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
 
         with allure.step("Проверка текстового содержимого"):
-            assert response.text == '{"approved":57,"delivered":50}'
+            jsonschema.validate(response.json(), inventory_schema)
+
 
 
     @allure.title("Попытка создания заказа")
@@ -53,7 +53,7 @@ class TestStore:
 
         with allure.step("Проверка статус кода и валидация json схемы"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
-            jsonschema.validate(response.json(), PET_SCHEMA)
+            jsonschema.validate(response.json(), STORE_SCHEMA)
             response_json = response.json()
 
 
@@ -65,19 +65,19 @@ class TestStore:
 
 
     @allure.title ("Попытка получения информации о заказе по ID")
-    def test_get_store_by_id(self, create_store):
+    def test_get_store_by_id(self, create_order):
         with allure.step("Получение ID созданного заказа"):
-            store_id = create_store["id"]
+            store_id = create_order["id"]
 
         with allure.step("Отправка get запроса по ID"):
-            response = requests.get(url = f"{BASE_URL}/store/order/1")
+            response = requests.get(url = f"{BASE_URL}/store/order/{store_id}")
             assert response.status_code == 200, "Код ответа не совпадает с ожидаемым"
             assert response.json()["id"] == store_id, "Id запроса не совпадает с ответом"
 
     @allure.title ("Попытка удалить заказ по ID")
-    def test_delete_store_by_id(self, create_store):
+    def test_delete_store_by_id(self, create_order):
         with allure.step("Получение ID созданного заказа"):
-            store_id = create_store["id"]
+            store_id = create_order["id"]
 
         with allure.step("Удаление заказа по ID"):
             response = requests.delete(url = f"{BASE_URL}/store/order/{store_id}")

@@ -4,7 +4,7 @@ import requests
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
 @pytest.fixture(scope = "function")
-def create_store():
+def create_order():
     payload = {
         "id": 1,
         "petId": 198772,

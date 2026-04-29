@@ -1,4 +1,4 @@
-PET_SCHEMA = {
+STORE_SCHEMA = {
     "type": "object",
     "properties": {
         "id": {
@@ -22,4 +22,15 @@ PET_SCHEMA = {
         }
     },
     "required": ["id", "status", "complete"]
+}
+
+inventory_schema = {
+    "type": "object",
+    "properties": {
+        "approved": {
+            "type": "integer"},
+        "delivered": {
+            "type": "integer"}
+    },
+    "required": ["approved", "delivered"]
 }
